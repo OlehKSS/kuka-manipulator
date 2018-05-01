@@ -3,9 +3,12 @@ clear;
 close all;
 
 %run('init');
-addpath('kinematics/');
-addpath('kuka-kinematics/');
-addpath('vrep-remote-api/');
+%addpath('kinematics/');
+import kuka.kuka_directkinematics;
+import kuka.kuka_J;
+
+import kinematics.get_orientation_error;
+import kinematics.get_quaternion;
 
 % inverse or transpose (of Jacobian)
 algorithm = 'inverse';

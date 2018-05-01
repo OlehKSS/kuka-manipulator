@@ -12,6 +12,14 @@
 
 function [t, q, q_act] = main_vrep
 
+    addpath('vrep_remote_api/');
+    
+    import kuka.kuka_directkinematics;
+    import kuka.kuka_J;
+
+    import kinematics.get_orientation_error;
+    import kinematics.get_quaternion;
+
     porta = 19997;          % default V-REP port
     tf = 4;                 % final time
     Ts = 0.01;              % sampling time
