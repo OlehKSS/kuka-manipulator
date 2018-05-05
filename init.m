@@ -1,4 +1,40 @@
 % Initialization file for the direct kinematics exercise 
+% Kuka LWR DH
+% a(m), alpha, d(m), theta
+kuka_lwr = [0 pi/2 0.3105; %1
+    0 -pi/2 0; %2
+    0 pi/2 0.4; %3
+    0 -pi/2 0; %4
+    0 pi/2 0.39; %5
+    0 -pi/2 0; %6
+    0 0 0.078]; %7
+
+% initial e. e. position
+pa = [0.65 0 0.4];
+% initial orientation to be found
+% approach vector is aligned with
+x = [1 -1 0];
+% the e.e. is required to advance 5 cm in the direction of ˆx
+% while rotating 4pi rad
+theta_kuka = [0 0 0 0 0 0 0]';
+
+q_initial = [-0.1201
+    -0.7300
+    0.3238
+   -1.4300
+    1.0247
+    1.1270
+    0.6155];
+% 
+%    -0.1201
+%    -0.7300
+%     0.3238
+%    -1.4300
+%     1.0247
+%     1.1270
+%     0.6155
+
+DH_kuka = [kuka_lwr q_initial];
 
 % Link lengths
 a1 = 1;

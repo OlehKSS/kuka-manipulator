@@ -1,4 +1,5 @@
 function T = DirectKinematics(DH)
+import kinematics.Homogeneous;
 %DH matrix of Denavit-Hartenberg parameters
 %returns end-effector position
     

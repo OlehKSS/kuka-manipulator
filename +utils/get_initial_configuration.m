@@ -9,6 +9,8 @@ function out = get_initial_configuration(x_pos, x_q, algorithm)
 
     import kinematics.get_orientation_error;
     import kinematics.get_quaternion;
+    import kinematics.Jacobian;
+    import kinematics.DirectKinematics;
 
     % sampling time
     dt = 0.001;
@@ -26,7 +28,8 @@ function out = get_initial_configuration(x_pos, x_q, algorithm)
         0];
 
     q_t = zeros(n, N);
-    q_t(:, 1) = kuka_joint_init;%DH(:, 4);
+    q_t(:, 1) = kuka_joint_init;
+    %q_t(:, 1) = DH(:, 4);
     dq_t = zeros(n, N);
     %x_t = zeros(n, N);
     %x_d = [0.8 0.8 pi]';
@@ -35,7 +38,7 @@ function out = get_initial_configuration(x_pos, x_q, algorithm)
     quat_error_t = zeros(3, N);
 
     if strcmp(algorithm, 'inverse')
-        K = diag(20*ones(1, 6));
+        K = diag(5*ones(1, 6));
         % the larger K the larger robot movement
         % settling time will be 10*constant time (inverse of K diagonal values)
         dq = @(e, J_a) (pinv(J_a)*(K*e));    
