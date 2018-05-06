@@ -10,7 +10,7 @@
 %
 % G. Antonelli, Sistemi Robotici, fall 2014
 
-function [t, q, q_act] = main_vrep
+function [t, q, q_act] = main_vrep(q_initial)
 
     addpath('vrep_remote_api/');
     
@@ -25,13 +25,9 @@ function [t, q, q_act] = main_vrep
     porta = 19997;          % default V-REP port
     
     % << Initialization additional variables that I would like to use
-   q_initial = [-0.1201
-    0.7300
-    0.3238
-   -1.4300
-    1.0247
-   -1.1270
-    0.6155];
+    if (nargin < 1)
+           q_initial = [-0.1201 0.7300 0.3238 -1.4300 1.0247 -1.1270 0.6155]';
+    end
 
     % >> End of my initialization block
     fprintf('----------------------');

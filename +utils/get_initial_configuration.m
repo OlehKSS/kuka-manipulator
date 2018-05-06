@@ -18,14 +18,16 @@ function out = get_initial_configuration(x_pos, x_q, algorithm)
     N = length(t);
     % number of links
     n = 7;%size(DH, 1);
-
-    kuka_joint_init = [0;
-        0;
-        0;
-        0;
-        0;
-        0;
-        0];
+% 
+%     kuka_joint_init = [0;
+%         0;
+%         0;
+%         0;
+%         0;
+%         0;
+%         0];
+    
+    kuka_joint_init = [0 -45  0 -90 0 45 0]'/180*pi; 
 
     q_t = zeros(n, N);
     q_t(:, 1) = kuka_joint_init;
@@ -38,7 +40,7 @@ function out = get_initial_configuration(x_pos, x_q, algorithm)
     quat_error_t = zeros(3, N);
 
     if strcmp(algorithm, 'inverse')
-        K = diag(5*ones(1, 6));
+        K = diag([100 100 100 80 80 80]);
         % the larger K the larger robot movement
         % settling time will be 10*constant time (inverse of K diagonal values)
         dq = @(e, J_a) (pinv(J_a)*(K*e));    
@@ -60,7 +62,7 @@ function out = get_initial_configuration(x_pos, x_q, algorithm)
         % calculate separately error for the quaternion and pos vector
         error_pos = x_pos - x_pos_current;
         pos_error_t(:, i) = error_pos;
-        error_quat = get_orientation_error(x_q, x_q_current);
+        error_quat = get_orientation_error(x_q_current, x_q);
         quat_error_t(:, i) = error_quat;
         error = [error_pos; error_quat];
         dq_t(:, i+1) = dq(error, J);
