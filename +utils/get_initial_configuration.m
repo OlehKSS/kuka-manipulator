@@ -67,14 +67,13 @@ function out = get_initial_configuration(x_pos, x_q, algorithm, DH, K)
 
     end
     
-    figure;
-    plot(t, pos_error_t);
-    title('Position error');
-
-    figure;
-    plot(t, quat_error_t);
-    title('Quaternion error');
+%     figure;
+%     plot(t, pos_error_t);
+%     title('Position error');
+% 
+%     figure;
+%     plot(t, quat_error_t);
+%     title('Quaternion error');
     
     out = q_t(:, end);
 end
-

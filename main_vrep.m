@@ -10,9 +10,10 @@
 %
 % G. Antonelli, Sistemi Robotici, fall 2014
 
-function [t, q, q_act] = main_vrep(q_initial)
+function [t, q, q_act] = main_vrep(q_initial, q_t)
 
     addpath('vrep_remote_api/');
+    import utils.get_qvrep;
     
     import kuka.kuka_directkinematics;
     import kuka.kuka_J;
@@ -26,7 +27,9 @@ function [t, q, q_act] = main_vrep(q_initial)
     
     % << Initialization additional variables that I would like to use
     if (nargin < 1)
-           q_initial = [-0.1201 0.7300 0.3238 -1.4300 1.0247 -1.1270 0.6155]';
+        q_initial = [-0.1201 0.7300 0.3238 -1.4300 1.0247 -1.1270 0.6155]';
+    else
+        q_initial = get_qvrep(q_initial);
     end
 
     % >> End of my initialization block
@@ -44,6 +47,14 @@ function [t, q, q_act] = main_vrep(q_initial)
     % set initial pose of the manipulator
     my_set_joint_target_position(vrep, clientID, handle_joint, q_initial);
     pause(2);
+    
+    if (nargin == 2)
+        for i=1:length(q_t)
+            q_t_vrep = get_qvrep(q_t(:, i));
+            my_set_joint_target_position(vrep, clientID, handle_joint, q_t_vrep);
+        end
+    end
+    
     DeleteVrep(clientID, vrep);      
 end
 
