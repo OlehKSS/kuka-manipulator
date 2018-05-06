@@ -1,8 +1,10 @@
-function out = get_initial_configuration(x_pos, x_q, algorithm)
+function out = get_initial_configuration(x_pos, x_q, algorithm, DH, K)
     % GET_INITIAL_CONFIGURATION returns initail joint variables for the
     % specified end effector position x_pos and quaternion x_q
     % algorithm is string that defines a method for inverse differential 
     % kinematics calculation, equals to 'inverse' or 'transpose'
+    % DH - Denavit-Hartenberg table for the Kuka
+    % K - gain matrix, optional
 
     import kuka.kuka_directkinematics;
     import kuka.kuka_J;
@@ -17,43 +19,38 @@ function out = get_initial_configuration(x_pos, x_q, algorithm)
     t = 0:dt:1;
     N = length(t);
     % number of links
-    n = 7;%size(DH, 1);
-% 
-%     kuka_joint_init = [0;
-%         0;
-%         0;
-%         0;
-%         0;
-%         0;
-%         0];
-    
-    kuka_joint_init = [0 -45  0 -90 0 45 0]'/180*pi; 
+    n = size(DH, 1);
 
     q_t = zeros(n, N);
-    q_t(:, 1) = kuka_joint_init;
-    %q_t(:, 1) = DH(:, 4);
+    %q_t(:, 1) = kuka_joint_init;
+    q_t(:, 1) = DH(:, 4);
     dq_t = zeros(n, N);
-    %x_t = zeros(n, N);
-    %x_d = [0.8 0.8 pi]';
 
     pos_error_t = zeros(3, N);
     quat_error_t = zeros(3, N);
-
-    if strcmp(algorithm, 'inverse')
-        K = diag([100 100 100 80 80 80]);
+    
+    if (nargin < 5)
         % the larger K the larger robot movement
         % settling time will be 10*constant time (inverse of K diagonal values)
+        K = diag([100 100 100 80 80 80]);
+    end
+    
+
+    if strcmp(algorithm, 'inverse')
         dq = @(e, J_a) (pinv(J_a)*(K*e));    
     else
-        K = diag(50*ones(1, 6));
         dq = @(e, J_a) (J_a'*(K*e)); 
     end
 
     for i = 1:(N - 1)
 
         kuka_joint_temp = q_t(:, i);
-        T = kuka_directkinematics(kuka_joint_temp);
-        J = kuka_J(kuka_joint_temp); 
+        DH(:, 4) = kuka_joint_temp;
+        %T = kuka_directkinematics(kuka_joint_temp);
+        %J = kuka_J(kuka_joint_temp); 
+        T = DirectKinematics(DH);
+        J = Jacobian(T);
+        T = T{end};
         % In case of quaternion representation geometric Jacobian and
         % analytical are the same 
 

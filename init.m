@@ -16,7 +16,8 @@ pa = [0.65 0 0.4];
 x = [1 -1 0];
 % the e.e. is required to advance 5 cm in the direction of ˆx
 % while rotating 4pi rad
-theta_kuka = [0 0 0 0 0 0 0]';
+%theta_kuka = [0 0 0 0 0 0 0]';
+theta_kuka = [0 -45  0 -90 0 45 0]'/180*pi;
 
 q_initial = [-0.1201
     -0.7300
@@ -34,7 +35,7 @@ q_initial = [-0.1201
 %     1.1270
 %     0.6155
 
-DH_kuka = [kuka_lwr q_initial];
+DH_kuka = [kuka_lwr theta_kuka];
 
 % Link lengths
 a1 = 1;
