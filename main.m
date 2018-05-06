@@ -25,11 +25,7 @@ x_q = [cos(0.5*theta); sin(0.5*theta)*x_dir];
 r_i = get_init_rot_matrix(x_dir);
 r_f = get_rot_matrix(x_dir, theta);
 x_q_i = get_quaternion(r_i);
-a = 1/sqrt(2);
-R = [a 0 a; a 0 -a; 0 1 0];
-quat_d0 = get_quaternion(R);
-K = diag(10*ones(1, 6));
-q = get_initial_configuration(x_pos, quat_d0, algorithm, DH_kuka, K);
+q = get_initial_configuration(x_pos, x_q_i, algorithm, DH_kuka);
 q_vrep = get_qvrep(q);
 main_vrep(q_vrep);
 % how to find cruise velocity
