@@ -13,6 +13,7 @@ function q = get_quaternion(R)
     % need to stick to one representation only, we need to check only scalar
     % part of the quaternion
     if (etha < 0)
+        etha = -etha;
         epsilon = -epsilon;
     end
 

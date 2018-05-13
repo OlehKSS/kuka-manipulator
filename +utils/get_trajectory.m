@@ -1,4 +1,4 @@
-function q_t = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
+function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     %GET_TRAJECTORY Summary of this function goes here
     %   Detailed explanation goes here
     % GET_INITIAL_CONFIGURATION returns initail joint variables for the
@@ -21,10 +21,12 @@ function q_t = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     import utils.get_rot_matrix;
     import utils.get_rot_matrix;
     import utils.get_init_rot_matrix;
+    import utils.plot_rot_matrix;
     
     % sampling time
     dt = 0.001;
     t = 0:dt:tf;
+    t_trapzl = 0.7*tf;
     N = length(t);
     % number of links
     n = size(DH, 1);
@@ -33,7 +35,8 @@ function q_t = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     q_vrep = zeros(n, N);
     q_t(:, 1) = DH(:, 4);
     dq_t = zeros(n, N);
-
+    
+    pos_t = zeros(3, N);
     pos_error_t = zeros(3, N);
     quat_error_t = zeros(3, N);
     
@@ -50,6 +53,7 @@ function q_t = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     
 
     if strcmp(algorithm, 'inverse')
+        % do I need to use velocity here as well e*(1/dt) 
         dq = @(e, J_a) (pinv(J_a)*(K*e));    
     else
         dq = @(e, J_a) (J_a'*(K*e)); 
@@ -62,33 +66,33 @@ function q_t = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     
     % lets find velocity profile for the whole silmulation time
     % cruise velocity, 1 < coef <= 2
-    theta_vc = 1.4*theta/tf;
+    theta_vc = 1.4*theta/t_trapzl;
     
     for i = 1:N
-        [theta_t(i), theta_vt(i), theta_at(i)] = trapezoidal(0, theta, theta_vc, tf, t(i));
+        [theta_t(i), theta_vt(i), theta_at(i)] = trapezoidal(0, theta, theta_vc, t_trapzl, t(i));
     end
     
     % init quaternion
-    x_dir = [1 -1 0]';
-    x_dir = x_dir / norm(x_dir);
-    r_i = get_init_rot_matrix(x_dir);
+    T = DirectKinematics(DH);
+    T = T{end};
+    r_i = T(1:3, 1:3);
+    plot_rot_matrix(r_i);
+    hold on;
+    quiver3(0, 0, 0, 1, -1, 0, 'color', [0 1 0]);
+    hold on;
     
     % function for obtaining rotation matrix for each time instant
-    R_t = @(i) get_rot_matrix(axis, theta_t(i))*r_i;
+    %R_t = @(i) r_i*get_rot_matrix(axis, theta_t(i));
+    R_t = @(i) r_i*rotx(rad2deg(theta_t(i)));
     %R_t = @(i) [1 0 0; 0 cos(theta_t(i)) sin(theta_t(i)); 0 -sin(theta_t(i)) cos(theta_t(i))];
 
-%     figure;
-%     plot(t, theta_t);
-%     title('\theta');
-%     
-%     figure;
-%     plot(t, theta_vt);
-%     title('\theta velocity');
+%figure;
+%DrawRobot(DH);
 
     for i = 1:(N - 1)
-
         kuka_joint_temp = q_t(:, i);
         DH(:, 4) = kuka_joint_temp;
+        
         T = DirectKinematics(DH);
         J = Jacobian(T);
         T = T{end};
@@ -98,25 +102,49 @@ function q_t = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
         x_f_current = T(1:3, 4);       
         x_q_current = get_quaternion(T(1:3, 1:3));
         %x_q_current = get_quaternion(R_t(i));
-        x_q = get_quaternion(R_t(i+1));
+        x_q = get_quaternion(R_t(i));
+        if (mod(i, 500) == 0) && (i <=3000)
+            plot_rot_matrix(R_t(i), [1 0 0]);
+            hold on;
+        end
         % calculate separately error for position
-        error_pos = x_f - x_f_current;
+        pos_t(:, i) = x_f_current;
+        error_pos = (x_f - x_f_current);
         pos_error_t(:, i) = error_pos;
         error_quat = get_orientation_error(x_q_current, x_q);
         quat_error_t(:, i) = error_quat;
         error = [error_pos; error_quat];
         
         %dq_t(:, i+1) = dq(error_pos, J(1:3, :));
-        dq_t(:, i+1) = dq(error, J);
-        q_t(:, i + 1) = q_t(:, i) + dt * dq_t(:, i+1);
+        dq_t(:, i) = dq(error, J);
+        q_t(:, i + 1) = q_t(:, i) + dt * dq_t(:, i);
     end
     
+    %figure;
+    %DrawRobot(DH);
+    
+    %plot_rot_matrix(R_t(N-1), [1 0 0]);
+    
     figure;
+    subplot(2, 1, 1);
     plot(t, pos_error_t);
     title('Position error');
 
-    figure;
+    subplot(2, 1, 2);
     plot(t, quat_error_t);
     title('Quaternion error');
+    
+    figure;
+    plot(t, pos_t)
+    title('Position time function');
+    
+    figure;
+    subplot(2, 1, 1);
+    plot(t, theta_t);
+    title('\theta');
+    
+    subplot(2, 1, 2);
+    plot(t, theta_vt);
+    title('\theta velocity');
     
 end
