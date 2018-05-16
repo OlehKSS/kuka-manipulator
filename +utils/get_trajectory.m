@@ -14,6 +14,7 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     
     import kinematics.get_orientation_error;
     import kinematics.get_quaternion;
+    import kinematics.get_cont_quat;
     import kinematics.trapezoidal;
     import kinematics.Jacobian;
     import kinematics.DirectKinematics;
@@ -35,6 +36,7 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     q_vrep = zeros(n, N);
     q_t(:, 1) = DH(:, 4);
     dq_t = zeros(n, N);
+    quat_t = zeros(4, N);
     
     pos_t = zeros(3, N);
     pos_error_t = zeros(3, N);
@@ -83,7 +85,7 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     
     % function for obtaining rotation matrix for each time instant
     %R_t = @(i) r_i*get_rot_matrix(axis, theta_t(i));
-    R_t = @(i) r_i*rotx(rad2deg(theta_t(i)));
+    R_t = @(i) r_i*rotz(rad2deg(theta_t(i)));
     %R_t = @(i) [1 0 0; 0 cos(theta_t(i)) sin(theta_t(i)); 0 -sin(theta_t(i)) cos(theta_t(i))];
 
 %figure;
@@ -102,7 +104,9 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
         x_f_current = T(1:3, 4);       
         x_q_current = get_quaternion(T(1:3, 1:3));
         %x_q_current = get_quaternion(R_t(i));
-        x_q = get_quaternion(R_t(i));
+        x_q = get_cont_quat(R_t(i), quat_t, i);
+        %x_q = [1, 0, 0, 0]';
+        quat_t(:, i) = x_q;
         if (mod(i, 500) == 0) && (i <=3000)
             plot_rot_matrix(R_t(i), [1 0 0]);
             hold on;
@@ -135,8 +139,14 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     title('Quaternion error');
     
     figure;
+    subplot(2, 1, 1);
     plot(t, pos_t)
     title('Position time function');
+    
+    subplot(2, 1, 2);
+    plot(t, quat_t);
+    title('Quatertion over time');
+    legend('\eta', '\epsilon_x', '\epsilon_y', '\epsilon_z');
     
     figure;
     subplot(2, 1, 1);

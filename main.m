@@ -19,7 +19,7 @@ import kinematics.DirectKinematics;
 % inverse or transpose (of Jacobian)
 algorithm = 'inverse';
 % time of simulation, seconds
-tf = 30;
+tf = 10;
 % initial position
 x_init = [0.65 0 0.4]';
 % desired quaternion
@@ -39,7 +39,7 @@ q_init = get_initial_configuration(x_init, x_q_i, algorithm, DH_kuka);
 DH_kuka(:, 4) = q_init;
 %K = diag([0.25 0.25 0.25]);
 gain_pos = 0.25;
-gain_angle = 500;
+gain_angle = 100;
 K = diag([gain_pos gain_pos gain_pos gain_angle gain_angle gain_angle]);
 [t, q_t, dq_t] = get_trajectory(DH_kuka, x_f, tf, x_dir, theta, algorithm, K);
 
