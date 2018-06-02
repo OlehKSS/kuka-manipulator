@@ -48,11 +48,13 @@ subplot(2, 1, 1);
 plot(t, q_t);
 legend('q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7');
 title('Joint variables over time');
+xlabel('time, sec');
 
 subplot(2, 1, 2);
 plot(t, dq_t);
 legend('dq1', 'dq2', 'dq3', 'dq4', 'dq5', 'dq6', 'dq7');
 title('Joint variables velocities over time');
+xlabel('time, sec');
 
 
 main_vrep(q_init, q_t);

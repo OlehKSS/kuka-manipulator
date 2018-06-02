@@ -22,7 +22,7 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     import utils.get_rot_matrix;
     import utils.get_rot_matrix;
     import utils.get_init_rot_matrix;
-    import utils.plot_rot_matrix;
+    %import utils.plot_rot_matrix;
     
     % sampling time
     dt = 0.001;
@@ -78,18 +78,18 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     T = DirectKinematics(DH);
     T = T{end};
     r_i = T(1:3, 1:3);
-    plot_rot_matrix(r_i);
-    hold on;
-    quiver3(0, 0, 0, 1, -1, 0, 'color', [0 1 0]);
-    hold on;
+    %plot_rot_matrix(r_i);
+%     hold on;
+%     quiver3(0, 0, 0, 1, -1, 0, 'color', [0 1 0]);
+%     hold on;
     
     % function for obtaining rotation matrix for each time instant
     %R_t = @(i) r_i*get_rot_matrix(axis, theta_t(i));
     R_t = @(i) r_i*rotz(rad2deg(theta_t(i)));
     %R_t = @(i) [1 0 0; 0 cos(theta_t(i)) sin(theta_t(i)); 0 -sin(theta_t(i)) cos(theta_t(i))];
 
-%figure;
-%DrawRobot(DH);
+    figure;
+    DrawRobot(DH);
 
     for i = 1:(N - 1)
         kuka_joint_temp = q_t(:, i);
@@ -107,10 +107,10 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
         x_q = get_cont_quat(R_t(i), quat_t, i);
         %x_q = [1, 0, 0, 0]';
         quat_t(:, i) = x_q;
-        if (mod(i, 500) == 0) && (i <=3000)
-            plot_rot_matrix(R_t(i), [1 0 0]);
-            hold on;
-        end
+%         if (mod(i, 500) == 0) && (i <=3000)
+%             plot_rot_matrix(R_t(i), [1 0 0]);
+%             hold on;
+%         end
         % calculate separately error for position
         pos_t(:, i) = x_f_current;
         error_pos = (x_f - x_f_current);
@@ -124,8 +124,7 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
         q_t(:, i + 1) = q_t(:, i) + dt * dq_t(:, i);
     end
     
-    %figure;
-    %DrawRobot(DH);
+    DrawRobot(DH);
     
     %plot_rot_matrix(R_t(N-1), [1 0 0]);
     
@@ -133,28 +132,41 @@ function [t, q_t, dq_t] = get_trajectory(DH, x_f, tf, axis, theta, algorithm, K)
     subplot(2, 1, 1);
     plot(t, pos_error_t);
     title('Position error');
+    legend('e_x', 'e_y', 'e_z');
+    xlabel('time, sec');
 
     subplot(2, 1, 2);
     plot(t, quat_error_t);
     title('Quaternion error');
+    legend('e_1', 'e_2', 'e_3');
+    xlabel('time, sec');
     
     figure;
     subplot(2, 1, 1);
     plot(t, pos_t)
-    title('Position time function');
+    title('Position');
+    legend('x', 'y', 'z');
+    xlabel('time, sec');
     
     subplot(2, 1, 2);
     plot(t, quat_t);
-    title('Quatertion over time');
+    title('Quatertion');
     legend('\eta', '\epsilon_x', '\epsilon_y', '\epsilon_z');
+    xlabel('time, sec');
     
     figure;
-    subplot(2, 1, 1);
+    subplot(3, 1, 1);
     plot(t, theta_t);
-    title('\theta');
+    title('Angular Position');
+    xlabel('time, sec');
     
-    subplot(2, 1, 2);
+    subplot(3, 1, 2);
     plot(t, theta_vt);
-    title('\theta velocity');
+    title('Angular Velocity');
+    xlabel('time, sec');
     
+    subplot(3, 1, 3);
+    plot(t, theta_at);
+    title('Angular Acceleration');
+    xlabel('time, sec');
 end

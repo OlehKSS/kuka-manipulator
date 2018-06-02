@@ -52,6 +52,7 @@ function [t, q, q_act] = main_vrep(q_initial, q_t)
         for i=1:length(q_t)
             q_t_vrep = get_qvrep(q_t(:, i));
             my_set_joint_target_position(vrep, clientID, handle_joint, q_t_vrep);
+            pause(0.001);
         end
     end
     
